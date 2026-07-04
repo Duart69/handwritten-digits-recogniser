@@ -1,0 +1,13 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Project Data (Keep the heavy dataset out of GitHub)
+neural-networks-and-deep-learning/data/
