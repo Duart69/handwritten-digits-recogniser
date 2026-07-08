@@ -20,8 +20,11 @@ http://neuralnetworksanddeeplearning.com/index.html
 
 This project is a from-scratch implementation of a neural network capable of identifying handwritten digits (0-9) on greyscale images of 28x28 pixels. The project is made in Python using NumPy library.
 
-This neural network was trained with the MNIST provided free database, which contains around 60,000 images of these handwritten digits. At this moment the neural network achieves an accuracy of about 94-95%.
+This neural network was trained with the MNIST provided free database, which contains around 60,000 images of these handwritten digits. The repository features two distinct versions of the network architecture to demonstrate performance progression:
 
+0: The simpler implementation. It uses no advanced optimization techniques and relies on a Quadratic Cost Function and standard normal weight initialization.
+
+1: An improved version that implements a Cross Entropy Cost Function, regularization (Weight Decay) to minimize overfitting, and normalized weight initialization to prevent neuron saturation.
 
 
 \---
@@ -33,6 +36,7 @@ This neural network was trained with the MNIST provided free database, which con
 * \*\*From-Scratch Architecture:\*\* Matrix-based implementation of layers, weights and biases
 * \*\*Backpropagation Algorithm:\*\* Full manual implementation of the four fundamental equations of backpropagation
 * \*\*Stochastic Gradient Descent (SGD):\*\* Mini-batch based training optimization strategy
+* \*\*Performance Improvements:\*\* Side-by-side comparison showcasing faster learning and better generalization metrics.
 * \*\*Mathematical Stability:\*\* Features robust activation functions optimized to handle potential numerical overflows.
 
 
@@ -77,19 +81,21 @@ python code/run.py
 
 
 
-This would feed the neural network with the database. This run.py initialize the neural network with:
+When you run run.py, the CLI will prompt you to choose between the two network versions (0 or 1). Once chosen, the script feeds the data into the network initialized with the following hyperparameter defaults:
 
-\-A hidden layer with 30 neurons
+\-Topology: 1 Hidden layer with 30 neurons (784 -> 30 -> 10)
 
-\-30 epochs
+\-Training Length: 30 epochs
 
-\-Mini Batch Size of 10
+\-Mini Batch Size: 10
 
-\-And a learning rate of 3
+\-Learning rate: 3
+
+\-Regularization Parameter: 0.5 (Only active if Network 1 is selected)
 
 
 
-You will be able to see how the neural network evolves on each epochs with a ratio of x/10000 where x is the number of digits the neural networks guessed correctly out of 10,000 test images
+The terminal will print live evaluations after each epoch, displaying the total cross-entropy or quadratic cost alongside a real-time accuracy ratio (e.g., x / 10000, where x represents the number of images correctly predicted out of the 10,000-image test set).
 
 
 

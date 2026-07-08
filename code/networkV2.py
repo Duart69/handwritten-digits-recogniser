@@ -5,25 +5,22 @@ def sigmoid(z):
     return (1.0/(1.0 + np.exp(-z)))
 
 def sigmoid_prime(z):
-    """Derivative of the sigmoid function."""
     return sigmoid(z)*(1-sigmoid(z))
 
-def quadratic_cost(a, y):
-    return (1/2)*(np.sum((y-a)**2))
+def cross_entropy_cost(a,y):
+    return -np.sum(np.nan_to_num((y*np.log(a)) + ((1-y)*np.log(1-a))))
 
 class Network(object):
 
     def __init__(self, sizes):
         self.sizes = sizes
         self.numLayers = len(sizes)
-        # self.biases = [np.random.randn(y,1) for y in sizes[1:]]
         self.biases = []
         for i in sizes[1:]:
             self.biases.append(np.random.randn(i,1))
         
-        self.weights =  [np.random.randn(y,x) for x, y in zip(sizes[:-1], sizes[1:])]
+        self.weights =  [(np.random.randn(y,x))/np.sqrt(x) for x, y in zip(sizes[:-1], sizes[1:])]
     
-    #the ouput of the network given an input of neurons
     def feedforward(self, a):
         for b, w in zip(self.biases, self.weights):
             a = sigmoid(np.dot(w, a) + b)
@@ -31,7 +28,7 @@ class Network(object):
     
 
     def SGD(self, training_data, epochs, mini_batch_size,
-            eta, test_data = None):
+            eta, test_data = None, reg_param = 0.0):
         if test_data: n_test = len(test_data)
         n = len(training_data)
         for i in range(epochs):
@@ -44,16 +41,17 @@ class Network(object):
             ]
 
             for mini_batch in mini_batches:
-                self.updateMiniBatch(mini_batch,eta)
+                self.updateMiniBatch(mini_batch,eta,reg_param,n)
 
             if test_data:
-                evaluate, cost = self.evaluate(test_data)
-                print("Epoch {0}: {1} / {2}\nCost: {3:.2f}".format(
+                evaluate, cost = self.evaluate(test_data, reg_param)
+                print("Epoch {0}: {1} / {2}\nTraining Cost:{3:.2f}".format(
                     i, evaluate, n_test, cost))
             else:
-                print("Epoch {0} complete".format(i))
+                print("Epoch {0} complete\n".format(i))
+                
     
-    def updateMiniBatch(self, mini_batch, eta):
+    def updateMiniBatch(self, mini_batch, eta, reg_param, n):
         nabla_b = [np.zeros(b.shape) for b in self.biases]
         nabla_w = [np.zeros(w.shape) for w in self.weights]
 
@@ -61,38 +59,29 @@ class Network(object):
             delta_nabla_b, delta_nabla_w = self.backprop(x, y)
             nabla_b = [nb + dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
             nabla_w = [nw + dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
-        
-        self.weights = [w - eta/len(mini_batch)*nw
+
+        self.weights = [(1-(reg_param*eta/n))*w - (eta/len(mini_batch)*nw)
                         for w, nw in zip(self.weights, nabla_w)]
         self.biases = [b - eta/len(mini_batch)*nb
                        for b, nb in zip(self.biases, nabla_b)]
     
     def backprop(self, x, y):
-        """Return a tuple ``(nabla_b, nabla_w)`` representing the
-        gradient for the cost function C_x.  ``nabla_b`` and
-        ``nabla_w`` are layer-by-layer lists of numpy arrays, similar
-        to ``self.biases`` and ``self.weights``."""
         nabla_b = [np.zeros(b.shape) for b in self.biases]
         nabla_w = [np.zeros(w.shape) for w in self.weights]
         # feedforward
         activation = x
-        activations = [x] # list to store all the activations, layer by layer
-        zs = [] # list to store all the z vectors, layer by layer
+        activations = [x]
+        zs = []
         for b, w in zip(self.biases, self.weights):
             z = np.dot(w, activation)+b
             zs.append(z)
             activation = sigmoid(z)
             activations.append(activation)
         # backward pass
-        delta = self.cost_derivative(activations[-1], y) * sigmoid_prime(zs[-1])
+        delta = self.cost_derivative(activations[-1],y)
         nabla_b[-1] = delta
         nabla_w[-1] = np.dot(delta, activations[-2].transpose())
-        # Note that the variable l in the loop below is used a little
-        # differently to the notation in Chapter 2 of the book.  Here,
-        # l = 1 means the last layer of neurons, l = 2 is the
-        # second-last layer, and so on.  It's a renumbering of the
-        # scheme in the book, used here to take advantage of the fact
-        # that Python can use negative indices in lists.
+        
         for l in range(2, self.numLayers):
             z = zs[-l]
             sp = sigmoid_prime(z)
@@ -102,22 +91,23 @@ class Network(object):
         return (nabla_b, nabla_w)
     
     def cost_derivative(self, output_activations, y):
-        r"""Return the vector of partial derivatives \partial C_x /
-        \partial a for the output activations."""
         return (output_activations-y)
         
-    def evaluate(self, test_data):
+    def evaluate(self, test_data, reg_param):
         total_cost = 0.0
         test_result = []
         for x, y in test_data:
             output = self.feedforward(x)
-            test_result.append((np.argmax(output), y))
+            test_result.append((np.argmax(output),y))
 
             if np.isscalar(y):
                 y_vector = np.zeros((10,1))
                 y_vector[y] = 1.0
             else:
                 y_vector = y
-            total_cost += quadratic_cost(output, y_vector)
+
+            total_cost += cross_entropy_cost(output,y_vector)
         average_cost = total_cost/len(test_data)
-        return (sum(int(x==y) for x, y in test_result), average_cost)
+        weight_square_sum = sum(np.sum(w**2) for w in self.weights)
+        regularization_cost = (reg_param/(2*len(test_data)))*weight_square_sum
+        return (sum(int(x==y) for x, y in test_result), average_cost + regularization_cost)
