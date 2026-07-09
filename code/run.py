@@ -20,6 +20,7 @@ training_data, validation_data, test_data = mnist_loader.load_data_wrapper()
 training_data = list(training_data)
 test_data = list(test_data)
 print("Data loaded successfully!")
+print("Starting training...")
 if(chosen==0):
         net = network.Network([784, 30, 10])
         net.SGD(training_data = training_data,
@@ -29,12 +30,11 @@ if(chosen==0):
         test_data=test_data
         )
 else:
-        net = networkV2.Network([784, 30, 10])
+        net = networkV2.Network([784,30, 30, 10])
         net.SGD(training_data = training_data,
         epochs=30,
         mini_batch_size=10,
-        eta=0.5,
+        eta=0.2,
         test_data=test_data,
-        reg_param = 0.5
+        reg_param = 5
         )
-print("Starting training...")

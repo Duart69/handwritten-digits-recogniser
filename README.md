@@ -89,7 +89,7 @@ When you run run.py, the CLI will prompt you to choose between the two network v
 
 \-Mini Batch Size: 10
 
-\-Learning rate: 3
+\-Learning rate: 0.2
 
 \-Regularization Parameter: 0.5 (Only active if Network 1 is selected)
 
